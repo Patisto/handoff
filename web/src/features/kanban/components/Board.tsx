@@ -47,7 +47,7 @@ function Card({ task, overlay = false }: { task: Task; overlay?: boolean }) {
         transform: transform ? `translate3d(${transform.x}px,${transform.y}px,0)` : undefined,
       }}
       className={cn(
-        'group relative rounded-lg border border-[#2c2c32] bg-[#1c1c20] p-3.5 transition-[box-shadow,border-color] hover:border-[#45434e] hover:shadow-md',
+        'kanban-card group relative rounded-lg border border-border bg-panel p-3.5 transition-[box-shadow,border-color] hover:border-accent/50 hover:shadow-md',
         isDragging && 'opacity-25',
         overlay && 'rotate-2 scale-[1.03] border-accent/60 shadow-2xl',
       )}
@@ -55,14 +55,14 @@ function Card({ task, overlay = false }: { task: Task; overlay?: boolean }) {
       <div className="mb-3 flex items-center justify-between">
         <span className="max-w-[180px] truncate text-[10px] text-muted">
           {task.project.clientName}
-          <span className="px-1.5 text-[#4b4b54]">/</span>
+          <span className="px-1.5 text-muted">/</span>
           {task.department.name}
         </span>
         <button
           {...attributes}
           {...listeners}
           aria-label={`Drag ${task.title}`}
-          className="-mr-1 touch-none rounded p-1 text-[#606068] hover:bg-white/5 hover:text-foreground"
+          className="-mr-1 touch-none rounded p-1 text-muted hover:bg-raised hover:text-foreground"
         >
           <GripVertical size={13} />
         </button>
@@ -75,24 +75,26 @@ function Card({ task, overlay = false }: { task: Task; overlay?: boolean }) {
           className={cn(
             'rounded border px-1.5 py-0.5 text-[9px]',
             task.priority === 'URGENT'
-              ? 'border-rose-400/20 bg-rose-400/5 text-rose-300'
+              ? 'border-danger/20 bg-danger/5 text-danger'
               : task.priority === 'HIGH'
-                ? 'border-accent/20 bg-accent/5 text-[#b7aafa]'
-                : 'border-border text-muted',
+                ? 'border-warning/20 bg-warning/10 text-warning'
+                : task.priority === 'NORMAL'
+                  ? 'border-accent/20 bg-accent/10 text-accent'
+                  : 'border-border text-muted',
           )}
         >
           {task.priority === 'URGENT' ? '↑↑ ' : task.priority === 'HIGH' ? '↑ ' : ''}
           {label(task.priority)}
         </span>
         {task.status === 'REJECTED' && (
-          <span className="text-[9px] text-rose-300">Needs revision</span>
+          <span className="text-[9px] text-danger">Needs revision</span>
         )}
       </div>
-      <div className="mt-4 flex items-center justify-between border-t border-white/[.045] pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
         <span
           className={cn(
             'flex items-center gap-1.5 text-[10px]',
-            overdue ? 'text-rose-300/90' : 'text-muted',
+            overdue ? 'text-danger/90' : 'text-muted',
           )}
         >
           <CalendarDays size={11} />
@@ -115,7 +117,7 @@ function Card({ task, overlay = false }: { task: Task; overlay?: boolean }) {
             <Avatar name={task.assignee.name} />
           ) : (
             <span
-              className="h-6 w-6 rounded-full border border-dashed border-[#42424a]"
+              className="h-6 w-6 rounded-full border border-dashed border-border"
               title="Unassigned"
             />
           )}
@@ -131,15 +133,17 @@ function Column({ status, tasks }: { status: Status; tasks: Task[] }) {
     <section
       ref={setNodeRef}
       className={cn(
-        'min-h-[440px] w-[258px] shrink-0 rounded-xl p-2 transition-colors',
-        isOver ? 'bg-accent/[.07] ring-1 ring-accent/30' : 'bg-white/[.015]',
+        'kanban-column min-h-[490px] min-w-[258px] w-[258px] flex-1 shrink-0 rounded-xl border border-border p-3 transition-colors',
+        isOver ? 'bg-accent/[.07] ring-1 ring-accent/30' : 'bg-background/40',
       )}
       aria-label={`${label(status)} column`}
     >
       <header className="mb-3 flex h-8 items-center gap-2 px-1">
         <StatusDot status={status} />
         <h2 className="text-[11px] font-medium">{label(status)}</h2>
-        <span className="ml-0.5 rounded px-1.5 text-[10px] text-muted">{tasks.length}</span>
+        <span className="ml-0.5 rounded-md bg-border/60 px-1.5 py-0.5 text-[10px] text-muted">
+          {tasks.length}
+        </span>
         {manager && status === 'TODO' && (
           <button
             aria-label="Add a task"
@@ -155,7 +159,7 @@ function Column({ status, tasks }: { status: Status; tasks: Task[] }) {
           <Card key={task.id} task={task} />
         ))}
         {!tasks.length && (
-          <div className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-[11px] leading-5 text-[#676770]">
+          <div className="rounded-lg border border-dashed border-border px-3 py-8 text-center text-[11px] leading-5 text-muted">
             {status === 'TODO'
               ? 'New tasks start here.'
               : status === 'IN_REVIEW'
@@ -170,7 +174,7 @@ function Column({ status, tasks }: { status: Status; tasks: Task[] }) {
         {manager && status === 'TODO' && (
           <button
             onClick={() => useUI.getState().setCreateTask(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-[11px] text-[#777780] hover:bg-white/5 hover:text-foreground"
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-3 text-[11px] text-muted hover:bg-raised hover:text-foreground"
           >
             <Plus size={13} />
             Add task
@@ -222,9 +226,9 @@ export function Board({ embedded = false }: { embedded?: boolean }) {
     <div className={embedded ? '' : 'page !max-w-none'}>
       {!embedded && (
         <PageHeader
-          eyebrow="Make room for great work"
-          title="Your team, in motion."
-          description="A clear view of what’s moving, what’s next, and what needs you."
+          eyebrow="All work, one place"
+          title="Creative board"
+          description="From the first idea to the final approval. Keep every handoff in view."
           action={<NewTaskButton />}
         />
       )}
@@ -233,7 +237,7 @@ export function Board({ embedded = false }: { embedded?: boolean }) {
           <div className="flex items-center gap-2 border-b-2 border-accent pb-3 text-xs">
             <SlidersHorizontal size={13} />
             Board
-            <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-muted">
+            <span className="rounded bg-raised px-1.5 py-0.5 text-[10px] text-muted">
               {query.tasks.length}
             </span>
           </div>
@@ -331,14 +335,14 @@ export function Board({ embedded = false }: { embedded?: boolean }) {
           </div>
           <DragOverlay>
             {active ? (
-              <div className="w-[242px]">
+              <div className="w-[232px]">
                 <Card task={active} overlay />
               </div>
             ) : null}
           </DragOverlay>
         </DndContext>
       )}
-      <p className="mt-2 text-[10px] text-[#686870]">
+      <p className="mt-2 text-[10px] text-muted">
         Drag with the card handle, or open a task to change its status. Keyboard: focus the handle,
         press Space, then use arrow keys.
       </p>

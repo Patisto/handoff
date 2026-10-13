@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Plus, ArrowUpRight, CalendarDays, FolderClosed } from 'lucide-react';
+import { Plus, ArrowUpRight, CalendarDays } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProjects, useProject } from '../hooks/useProjects';
 import { projectsApi } from '../api';
@@ -153,7 +153,7 @@ function ProjectFields({ project, onClose }: { project?: Project; onClose: () =>
         <div className="border-t border-border pt-6">
           {confirm ? (
             <>
-              <p className="mb-3 text-xs text-rose-300">
+              <p className="mb-3 text-xs text-danger">
                 Delete this project, all its tasks, comments, and files permanently?
               </p>
               <Button
@@ -226,14 +226,22 @@ export function Projects() {
                   key={p.id}
                   to={`/projects/${p.id}`}
                   onClick={() => useUI.getState().setFilter('projectId', p.id)}
-                  className="panel group p-6 transition hover:border-[#45434e]"
+                  className="panel group overflow-hidden p-6 transition hover:-translate-y-0.5 hover:border-accent/50"
                 >
-                  <div className="mb-6 flex items-center justify-between">
-                    <span className="rounded-lg border border-border bg-white/[.025] p-2.5 text-accent">
-                      <FolderClosed size={20} strokeWidth={1.4} />
-                    </span>
-                    <ArrowUpRight size={15} className="text-muted group-hover:text-accent" />
+                  <div
+                    className="project-cover"
+                    data-tone={
+                      ['cyan', 'amber', 'violet'][
+                        [...p.id].reduce((sum, c) => sum + c.charCodeAt(0), 0) % 3
+                      ]
+                    }
+                  >
+                    <span>{p.clientName.trim().slice(0, 1).toUpperCase()}</span>
+                    <ArrowUpRight size={18} className="absolute right-4 top-4 opacity-70" />
                   </div>
+                  <span className="mb-3 inline-flex text-[10px] font-medium text-success">
+                    {label(p.status)}
+                  </span>
                   <p className="eyebrow mb-2">{p.clientName}</p>
                   <h2 className="font-medium tracking-tight">{p.name}</h2>
                   <p className="mt-3 line-clamp-2 min-h-10 text-xs leading-5 text-muted">
@@ -252,9 +260,9 @@ export function Projects() {
                     </span>
                     <span>{p.tasks.length ? Math.round((done / p.tasks.length) * 100) : 0}%</span>
                   </div>
-                  <div className="mb-5 mt-2 h-1 rounded-full bg-white/5">
+                  <div className="progress-track mb-5 mt-2">
                     <div
-                      className="h-1 rounded-full bg-accent"
+                      className="progress-fill"
                       style={{ width: `${p.tasks.length ? (done / p.tasks.length) * 100 : 0}%` }}
                     />
                   </div>

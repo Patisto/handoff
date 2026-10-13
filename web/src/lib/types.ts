@@ -68,6 +68,8 @@ export type Notification = {
 };
 export type Activity = {
   id: string;
+  taskId: string | null;
+  projectId: string | null;
   action: string;
   createdAt: string;
   actor: { id: string; name: string };

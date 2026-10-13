@@ -19,7 +19,7 @@ export function Sheet({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[1px] fade-enter" />
-        <Dialog.Content className="sheet-enter fixed inset-y-0 right-0 z-50 flex w-full max-w-[600px] flex-col border-l border-border bg-[#141417] shadow-2xl">
+        <Dialog.Content className="sheet-enter fixed inset-y-0 right-0 z-50 flex w-full max-w-[600px] flex-col border-l border-border bg-panel shadow-2xl">
           <div className="flex items-start justify-between border-b border-border px-6 py-5">
             <div>
               <Dialog.Title className="text-sm font-semibold">{title}</Dialog.Title>

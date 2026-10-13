@@ -5,6 +5,7 @@ import { queryClient } from '../../../api/query';
 import { signIn } from '../api';
 import { useAuth } from '../../../stores/auth';
 import { errorMessage } from '../../../api/client';
+import { ThemeToggle } from '../../../components/ThemeToggle';
 import { Button } from '../../../components/ui/button';
 export function Login() {
   const user = useAuth((s) => s.user);
@@ -28,10 +29,13 @@ export function Login() {
     }
   }
   return (
-    <main className="grid min-h-screen lg:grid-cols-2">
-      <section className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-[#151518] p-12 lg:flex">
+    <main className="relative grid min-h-screen lg:grid-cols-2">
+      <div className="absolute right-5 top-5 z-10">
+        <ThemeToggle />
+      </div>
+      <section className="login-story relative hidden flex-col justify-between overflow-hidden border-r border-border p-12 lg:flex">
         <div className="flex items-center gap-3 text-lg font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-contrast">
             <Layers size={19} />
           </span>
           handoff
@@ -52,13 +56,13 @@ export function Login() {
           </p>
           <div className="mt-12 grid grid-cols-3 gap-3">
             {['01 / Brief', '02 / Create', '03 / Approve'].map((s, i) => (
-              <div key={s} className="rounded-xl border border-border bg-[#1b1b20] p-4">
+              <div key={s} className="rounded-xl border border-border bg-raised p-4">
                 <div className="mb-6 flex justify-between text-muted">
                   <Layers size={16} />
                   <ArrowUpRight size={13} />
                 </div>
                 <p className={i === 2 ? 'text-xs text-accent' : 'text-xs'}>{s}</p>
-                <div className="mt-4 h-1 rounded bg-white/5">
+                <div className="mt-4 h-1 rounded bg-raised">
                   <div style={{ width: `${(i + 1) * 33}%` }} className="h-1 rounded bg-accent/60" />
                 </div>
               </div>
@@ -69,7 +73,7 @@ export function Login() {
           <span>Built for the way creative teams work.</span>
           <span>Handoff © {new Date().getFullYear()}</span>
         </div>
-        <div className="pointer-events-none absolute -right-52 top-24 h-[600px] w-[600px] rounded-full bg-violet-500/[.025] blur-3xl" />
+        <div className="pointer-events-none absolute -right-52 top-24 h-[600px] w-[600px] rounded-full bg-accent/5 blur-3xl" />
       </section>
       <section className="flex items-center justify-center p-7">
         <div className="w-full max-w-[350px]">
@@ -106,7 +110,7 @@ export function Login() {
               />
             </label>
             {error && (
-              <p role="alert" className="text-xs text-rose-300">
+              <p role="alert" className="text-xs text-danger">
                 {error}
               </p>
             )}

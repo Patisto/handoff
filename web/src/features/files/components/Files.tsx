@@ -64,7 +64,7 @@ export function Files({ taskId, projectId }: { taskId?: string; projectId?: stri
                 setDownloading('');
               }
             }}
-            className="flex w-full items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-white/[.025]"
+            className="flex w-full items-center gap-3 rounded-lg border border-border p-3 text-left hover:bg-raised/50"
           >
             <FileText size={16} className="text-muted" />
             <div className="min-w-0 flex-1">
@@ -84,7 +84,7 @@ export function Files({ taskId, projectId }: { taskId?: string; projectId?: stri
           </div>
         )}
         {query.isError && (
-          <p role="alert" className="text-xs text-rose-300">
+          <p role="alert" className="text-xs text-danger">
             Couldn’t load files. <button onClick={() => void query.refetch()}>Retry</button>
           </p>
         )}

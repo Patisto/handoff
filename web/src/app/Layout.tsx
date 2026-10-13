@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell,
   LayoutDashboard,
@@ -11,8 +11,8 @@ import {
   Search,
   LogOut,
   Menu,
-  ChevronDown,
   Command,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../stores/auth';
@@ -24,6 +24,7 @@ import { queryClient } from '../api/query';
 import { Button } from '../components/ui/button';
 import { Sheet } from '../components/ui/sheet';
 import { Avatar } from '../components/shared';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { TaskDrawer } from '../features/tasks/components/TaskDrawer';
 import { TaskForm } from '../features/tasks/components/TaskForm';
 import { cn } from '../lib/utils';
@@ -31,23 +32,32 @@ import { errorMessage } from '../api/client';
 import { removePushDevice } from '../features/notifications/push';
 const navigation = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-  { to: '/board', icon: Columns3, label: 'Task board' },
   { to: '/projects', icon: FolderClosed, label: 'Projects' },
+  { to: '/board', icon: Columns3, label: 'Task board' },
   { to: '/notifications', icon: Bell, label: 'Inbox' },
 ];
 export function Layout() {
   const user = useAuth((s) => s.user)!;
   const ui = useUI();
   const [menu, setMenu] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const connected = useRealtime();
   const { data: notifications = [] } = useNotifications();
   const unread = notifications.filter((n) => !n.read).length;
   const location = useLocation();
+  const navigate = useNavigate();
+  const links =
+    user.role === 'MANAGER'
+      ? [...navigation, { to: '/admin', icon: Users, label: 'Team & departments' }]
+      : navigation;
+  const page = links.find((n) => location.pathname.startsWith(n.to))?.label ?? 'Workspace';
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   useEffect(() => {
     function key(e: KeyboardEvent) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k' && !document.querySelector('[role="dialog"]')) {
         e.preventDefault();
-        document.getElementById('workspace-search')?.focus();
+        setSearchOpen((v) => !v);
       }
       if (
         e.key === 'n' &&
@@ -55,14 +65,13 @@ export function Layout() {
         !e.metaKey &&
         !(e.target as HTMLElement).closest('input,textarea,select,[contenteditable]') &&
         user.role === 'MANAGER' &&
-        !ui.taskId &&
-        !ui.createTask
+        !document.querySelector('[role="dialog"]')
       )
-        ui.setCreateTask(true);
+        useUI.getState().setCreateTask(true);
     }
     window.addEventListener('keydown', key);
     return () => window.removeEventListener('keydown', key);
-  }, [user.role, ui]);
+  }, [user.role]);
   async function logout() {
     try {
       await removePushDevice();
@@ -74,162 +83,205 @@ export function Layout() {
       toast.error(errorMessage(e));
     }
   }
-  const sidebar = (
-    <>
-      <div className="flex h-[76px] items-center gap-2.5 px-6">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-white">
-          <Layers size={17} />
-        </span>
-        <span className="text-lg font-semibold tracking-tight">
-          handoff<span className="text-accent">.</span>
-        </span>
-      </div>
-      <div className="mx-3 mb-7 flex items-center gap-3 rounded-lg border border-border bg-[#1c1c20] p-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 bg-[#292832] text-xs">
-          S
-        </span>
-        <div className="flex-1">
-          <p className="text-xs font-medium">Studio workspace</p>
-          <p className="mt-0.5 text-[10px] text-muted">
-            {user.role === 'MANAGER' ? 'Manager' : 'Team member'}
-          </p>
-        </div>
-        <ChevronDown size={13} className="text-muted" />
-      </div>
-      <p className="eyebrow mb-3 px-6">Workspace</p>
-      <nav className="space-y-1 px-3">
-        {navigation.map(({ to, icon: Icon, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            onClick={() => setMenu(false)}
-            className={({ isActive }) =>
-              cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs transition',
-                isActive
-                  ? 'bg-[#8b7af0]/10 text-[#b7aafa]'
-                  : 'text-muted hover:bg-white/5 hover:text-foreground',
-              )
-            }
-          >
-            <Icon size={16} strokeWidth={1.6} />
-            {label}
-            {to === '/notifications' && unread > 0 && (
-              <span className="ml-auto rounded bg-accent/15 px-1.5 text-[10px] text-accent">
-                {unread}
-              </span>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-      {user.role === 'MANAGER' && (
-        <>
-          <p className="eyebrow mb-3 mt-8 px-6">Manage</p>
-          <NavLink
-            onClick={() => setMenu(false)}
-            to="/admin"
-            className={({ isActive }) =>
-              cn(
-                'mx-3 flex items-center gap-3 rounded-lg px-3 py-2.5 text-xs',
-                isActive ? 'bg-accent/10 text-accent' : 'text-muted hover:bg-white/5',
-              )
-            }
-          >
-            <Users size={16} strokeWidth={1.6} />
-            People & departments
-          </NavLink>
-        </>
-      )}
-      <div className="mt-auto p-4">
-        <div className="mb-5 rounded-lg border border-dashed border-border p-3">
-          <p className="text-[11px] font-medium">A little less back-and-forth.</p>
-          <p className="mt-1.5 text-[10px] leading-5 text-muted">
-            Keep feedback on the task.
-            <br />
-            Your future self will thank you.
-          </p>
-        </div>
-        <div className="flex items-center gap-2.5 border-t border-border pt-4">
-          <Avatar name={user.name} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs">{user.name}</p>
-            <p className="text-[10px] text-muted">
-              {user.role === 'MANAGER'
-                ? 'Workspace manager'
-                : user.departments.map((d) => d.department.name).join(', ') || 'Team member'}
-            </p>
-          </div>
-          <Button
+  return (
+    <div className="workspace-app">
+      <a
+        href="#workspace-content"
+        className="sr-only fixed left-24 top-3 z-50 rounded bg-panel p-3 focus:not-sr-only"
+      >
+        Skip to content
+      </a>
+      <aside className="workspace-rail" aria-label="Workspace sidebar">
+        <Link to="/dashboard" className="rail-brand" aria-label="Handoff overview">
+          <span className="brand-mark">
+            <Layers size={21} />
+          </span>
+          <span className="rail-label">
+            Handoff<span className="text-accent">.</span>
+          </span>
+        </Link>
+        <nav className="rail-nav" aria-label="Main navigation">
+          {links.map(({ to, icon: Icon, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              aria-label={label}
+              title={label}
+              className={({ isActive }) => cn('rail-link', isActive && 'active')}
+            >
+              <Icon strokeWidth={1.7} />
+              <span className="rail-label">{label}</span>
+              {to === '/notifications' && unread > 0 && (
+                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-warning" />
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="rail-footer">
+          <button
+            type="button"
+            className="rail-link"
             title="Sign out"
             aria-label="Sign out"
             onClick={() => void logout()}
-            variant="ghost"
-            size="icon"
           >
-            <LogOut size={14} />
-          </Button>
+            <LogOut />
+            <span className="rail-label">Sign out</span>
+          </button>
+          <div className="rail-profile">
+            <Avatar name={user.name} size="lg" />
+            <div className="rail-label">
+              <p className="text-xs font-medium">{user.name}</p>
+              <p className="mt-1 text-[10px] text-muted">
+                {user.role === 'MANAGER'
+                  ? 'Workspace manager'
+                  : user.departments.map((d) => d.department.name).join(', ') || 'Team member'}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
-    </>
-  );
-  return (
-    <div className="flex min-h-screen">
-      <aside className="fixed inset-y-0 left-0 hidden w-[218px] flex-col border-r border-border bg-[#141416] md:flex">
-        {sidebar}
       </aside>
-      <div className="min-w-0 flex-1 md:ml-[218px]">
-        <header className="sticky top-0 z-20 flex h-[62px] items-center justify-between gap-3 border-b border-border bg-background/95 px-4 backdrop-blur md:px-8">
-          <div className="flex items-center gap-3">
-            <Button
-              className="md:hidden"
-              variant="ghost"
-              size="icon"
+      <div className="workspace-main">
+        <header className="workspace-header">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              className="header-action md:hidden"
               aria-label="Open navigation"
               onClick={() => setMenu(true)}
             >
               <Menu size={18} />
-            </Button>
-            <span className="hidden text-xs text-muted lg:inline">Workspace</span>
-            <span className="hidden text-border lg:inline">/</span>
-            <span className="text-xs">
-              {navigation.find((n) => location.pathname.startsWith(n.to))?.label ??
-                'People & departments'}
-            </span>
+            </button>
+            <div>
+              <p className="eyebrow mb-1.5">Handoff / Workspace</p>
+              <p className="font-display text-lg font-medium tracking-tight sm:text-2xl">
+                {location.pathname === '/dashboard'
+                  ? `${greeting}, ${user.name.split(' ')[0]}.`
+                  : page}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <span
               title={connected ? 'Live updates connected' : 'Reconnecting to live updates'}
-              className="hidden items-center gap-1.5 text-[10px] text-muted sm:flex"
+              className="mr-2 hidden items-center gap-1.5 text-[10px] text-muted lg:flex"
             >
               <span
                 className={cn(
                   'h-1.5 w-1.5 rounded-full',
-                  connected ? 'bg-accent' : 'bg-muted animate-pulse',
+                  connected ? 'bg-success' : 'bg-warning animate-pulse',
                 )}
               />
-              {connected ? 'Live' : 'Connecting'}
+              {connected ? 'Live workspace' : 'Connecting'}
             </span>
+            <ThemeToggle />
+            <button
+              type="button"
+              className="header-action"
+              aria-label={searchOpen ? 'Close task search' : 'Search tasks'}
+              title="Search tasks (Ctrl/Cmd+K)"
+              aria-expanded={searchOpen}
+              onClick={() => setSearchOpen((v) => !v)}
+            >
+              {searchOpen ? <X size={18} /> : <Search size={18} />}
+            </button>
             <NavLink
               to="/notifications"
-              className="relative p-2 text-muted"
+              className="header-action"
               aria-label={`Inbox, ${unread} unread`}
+              title="Inbox"
             >
-              <Bell size={16} />
+              <Bell size={18} />
               {unread > 0 && (
-                <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" />
+                <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-warning" />
               )}
             </NavLink>
-            <Avatar name={user.name} />
+            <span className="ml-1 hidden sm:inline-flex">
+              <Avatar name={user.name} size="lg" />
+            </span>
           </div>
+          {searchOpen && (
+            <form
+              className="flex w-full items-center gap-3 rounded-xl border border-border bg-panel px-3 py-1"
+              onSubmit={(e) => {
+                e.preventDefault();
+                navigate('/board');
+                setSearchOpen(false);
+              }}
+            >
+              <Search size={16} className="shrink-0 text-muted" />
+              <input
+                autoFocus
+                aria-label="Search all visible tasks"
+                placeholder="Search tasks by title, project, or assignee…"
+                value={ui.search}
+                onChange={(e) => ui.setFilter('search', e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setSearchOpen(false);
+                }}
+                className="border-0 bg-transparent focus:ring-0"
+              />
+              <Button type="submit" variant="ghost" size="sm">
+                Search board
+              </Button>
+            </form>
+          )}
         </header>
-        <Outlet />
+        <main id="workspace-content" tabIndex={-1} className="outline-none">
+          <Outlet />
+        </main>
       </div>
-      <Sheet open={menu} onOpenChange={setMenu} title="Workspace navigation">
-        <div className="flex min-h-full flex-col">{sidebar}</div>
+      <nav className="mobile-dock" aria-label="Mobile navigation">
+        {links.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            aria-label={label}
+            className={({ isActive }) => cn('dock-link', isActive && 'active')}
+          >
+            <Icon size={19} />
+            <span>{to === '/admin' ? 'Team' : to === '/board' ? 'Board' : label}</span>
+            {to === '/notifications' && unread > 0 && (
+              <span className="absolute right-3 top-1 h-1.5 w-1.5 rounded-full bg-warning" />
+            )}
+          </NavLink>
+        ))}
+      </nav>
+      <Sheet open={menu} onOpenChange={setMenu} title="Your workspace">
+        <div className="p-5">
+          <div className="mb-6 flex items-center gap-3">
+            <Avatar name={user.name} size="lg" />
+            <div>
+              <p className="font-medium">{user.name}</p>
+              <p className="mt-1 text-xs text-muted">
+                {user.role === 'MANAGER'
+                  ? 'Manager'
+                  : user.departments.map((d) => d.department.name).join(', ') || 'Member'}
+              </p>
+            </div>
+          </div>
+          <nav className="space-y-2" aria-label="Workspace menu">
+            {links.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                onClick={() => setMenu(false)}
+                className={({ isActive }) => cn('rail-link', isActive && 'active')}
+              >
+                <Icon />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <Button className="mt-8" variant="outline" onClick={() => void logout()}>
+            <LogOut size={15} />
+            Sign out
+          </Button>
+        </div>
       </Sheet>
       <TaskDrawer />
       <TaskForm />
-      <div className="pointer-events-none fixed bottom-3 right-4 hidden gap-2 text-[10px] text-[#56565f] xl:flex">
+      <div className="pointer-events-none fixed bottom-3 right-4 hidden gap-2 text-[10px] text-muted xl:flex">
         <Command size={12} />K to search<span>·</span>
         {user.role === 'MANAGER' ? 'N to create a task' : 'Made for focused work'}
       </div>
@@ -242,7 +294,7 @@ export function NewTaskButton() {
     <Button onClick={() => useUI.getState().setCreateTask(true)}>
       <Plus size={15} />
       New task
-      <span className="ml-2 hidden rounded border border-white/20 px-1 text-[9px] text-white/60 sm:inline">
+      <span className="ml-2 hidden rounded border border-current/20 px-1 text-[9px] opacity-70 sm:inline">
         N
       </span>
     </Button>

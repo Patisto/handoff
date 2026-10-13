@@ -88,7 +88,7 @@ function Detail({ task }: { task: Task }) {
       ];
   return (
     <>
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-[#141417]/95 px-6 py-3 backdrop-blur">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-panel/95 px-6 py-3 backdrop-blur">
         <div className="flex items-center gap-2">
           <Avatar name={task.assignee?.name ?? 'Unassigned'} />
           <span className="text-xs">{task.assignee?.name ?? 'Unassigned'}</span>
@@ -148,7 +148,7 @@ function Detail({ task }: { task: Task }) {
             <Button disabled={mutation.isPending}>Save brief</Button>
           </form>
         ) : (
-          <p className="whitespace-pre-wrap text-xs leading-7 text-[#b3b3bd]">
+          <p className="whitespace-pre-wrap text-xs leading-7 text-soft">
             {task.description ||
               'No description yet. Add context so the team knows what success looks like.'}
           </p>
@@ -249,9 +249,9 @@ function Detail({ task }: { task: Task }) {
           </label>
         </div>
         {task.rejectionReason && (
-          <div className="rounded-lg border border-rose-400/20 bg-rose-400/5 p-4">
-            <p className="mb-2 text-xs font-medium text-rose-300">Changes requested</p>
-            <p className="whitespace-pre-wrap text-xs leading-6 text-[#c6adb5]">
+          <div className="rounded-lg border border-danger/20 bg-danger/5 p-4">
+            <p className="mb-2 text-xs font-medium text-danger">Changes requested</p>
+            <p className="whitespace-pre-wrap text-xs leading-6 text-soft">
               {task.rejectionReason}
             </p>
             {manager ? (
@@ -284,7 +284,7 @@ function Detail({ task }: { task: Task }) {
         )}
         {reject && manager && (
           <form
-            className="space-y-3 rounded-lg border border-rose-400/20 p-4"
+            className="space-y-3 rounded-lg border border-danger/20 p-4"
             onSubmit={(e) => {
               e.preventDefault();
               mutation.mutate(
@@ -375,7 +375,7 @@ function Detail({ task }: { task: Task }) {
           <div className="border-t border-border pt-5">
             {confirmDelete ? (
               <div className="space-y-3">
-                <p className="text-xs text-rose-300">
+                <p className="text-xs text-danger">
                   Delete this task, its files, and all comments? This cannot be undone.
                 </p>
                 <Button

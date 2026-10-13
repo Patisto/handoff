@@ -76,7 +76,7 @@ export function Notifications() {
                   if (n.payload.taskId) useUI.getState().openTask(n.payload.taskId);
                 }}
                 className={cn(
-                  'flex w-full items-start gap-4 p-5 text-left transition hover:bg-white/[.025]',
+                  'flex w-full items-start gap-4 p-5 text-left transition hover:bg-raised/50',
                   !n.read && 'bg-accent/[.025]',
                 )}
               >

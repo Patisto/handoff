@@ -56,12 +56,12 @@ export function Admin() {
             <button
               key={user.id}
               onClick={() => setEditingUser(user)}
-              className="flex w-full items-center gap-3 p-5 text-left hover:bg-white/[.025]"
+              className="flex w-full items-center gap-3 p-5 text-left hover:bg-raised/50"
             >
               <Avatar name={user.name} size="lg" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-medium">
-                  {user.name} {!user.active && <span className="ml-2 text-rose-300">Inactive</span>}
+                  {user.name} {!user.active && <span className="ml-2 text-danger">Inactive</span>}
                 </p>
                 <p className="mt-1 truncate text-xs text-muted">{user.email}</p>
               </div>
@@ -79,7 +79,7 @@ export function Admin() {
             <button
               key={d.id}
               onClick={() => setEditingDepartment(d)}
-              className="panel p-6 text-left hover:border-[#45434e]"
+              className="panel p-6 text-left hover:border-accent/50"
             >
               <Users size={22} className="mb-6 text-accent" />
               <h2 className="font-medium">{d.name}</h2>
@@ -215,7 +215,7 @@ function UserForm({
         {departments.map((d) => (
           <label key={d.id} className="flex items-center gap-3 text-xs">
             <input
-              className="h-4 w-4 accent-[#8b7af0]"
+              className="h-4 w-4 accent-accent"
               type="checkbox"
               checked={selected.includes(d.id)}
               onChange={(e) =>
@@ -299,7 +299,7 @@ function DepartmentForm({
             .map((u) => (
               <label key={u.id} className="flex items-center gap-3 text-xs">
                 <input
-                  className="h-4 w-4 accent-[#8b7af0]"
+                  className="h-4 w-4 accent-accent"
                   type="checkbox"
                   checked={selected.includes(u.id)}
                   onChange={(e) =>

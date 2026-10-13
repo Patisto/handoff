@@ -193,6 +193,14 @@ handoff/
 └── compose.yaml
 ```
 
+## Interface and themes
+
+Handoff’s interface adopts the local **OSquared** reference: cyan/teal accents, DM Sans body text, Space Grotesk headings, gradient panels, an expanding desktop navigation rail, and a mobile navigation dock. The overview combines the review/work queue, active projects, real approval progress, and recent activity.
+
+Use the sun/moon button in the workspace header or login screen to switch between dark and light mode. Dark is the default. The browser remembers the selection under `handoff-theme`, applies it before the app renders, and synchronizes it across tabs. Forms, task drawers, notifications, and admin screens share the same theme tokens.
+
+Colors and component styles are in `web/src/index.css`; Tailwind maps those CSS variables in `web/tailwind.config.js`. Fonts load from Google Fonts, with local system-font fallbacks when offline. See [theme implementation notes](docs/THEME.md).
+
 ## Further setup
 
 - [Environment variables, manual PostgreSQL, optional FCM, deployment, troubleshooting](docs/SETUP.md)

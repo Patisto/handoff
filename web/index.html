@@ -1,10 +1,27 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111113" />
+    <meta name="theme-color" content="#12161a" />
     <meta name="description" content="Handoff — a calmer place for creative work." />
+    <script>
+      try {
+        const theme = localStorage.getItem('handoff-theme') === 'light' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+        document.querySelector('meta[name="theme-color"]').content =
+          theme === 'dark' ? '#12161a' : '#f4f6f8';
+      } catch {
+        /* Default to dark when browser storage is unavailable. */
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <title>Handoff · Creative operations</title>
   </head>
   <body>

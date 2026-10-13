@@ -79,13 +79,13 @@ export function Comments({ taskId }: { taskId: string }) {
                         disabled={remove.isPending}
                         aria-label="Delete comment"
                         onClick={() => remove.mutate(comment.id)}
-                        className="ml-auto text-muted hover:text-rose-300"
+                        className="ml-auto text-muted hover:text-danger"
                       >
                         <Trash2 size={11} />
                       </button>
                     )}
                 </div>
-                <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-6 text-[#b1b1bb]">
+                <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-6 text-soft">
                   {comment.body}
                 </p>
               </div>
@@ -100,7 +100,7 @@ export function Comments({ taskId }: { taskId: string }) {
       )}
       <form
         onSubmit={submit}
-        className="mt-6 overflow-hidden rounded-lg border border-border bg-[#1a1a1f]"
+        className="mt-6 overflow-hidden rounded-lg border border-border bg-panel"
       >
         <textarea
           aria-label="Comment"
