@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+enum Role {
+  MANAGER
+  MEMBER
+}
+enum ProjectStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  APPROVED
+  REJECTED
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role @default(MEMBER)
+  active Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  departments UserDepartment[]
+  projects Project[]
+  createdTasks Task[] @relation("TaskCreator")
+  assignedTasks Task[] @relation("TaskAssignee")
+  comments Comment[]
+  files File[]
+  notifications Notification[]
+  activities Activity[]
+  sessions RefreshSession[]
+  devices PushDevice[]
+  @@map("users")
+}
+model Department {
+  id String @id @default(cuid())
+  name String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users UserDepartment[]
+  tasks Task[]
+  @@map("departments")
+}
+model UserDepartment {
+  userId String
+  departmentId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  department Department @relation(fields:[departmentId], references:[id], onDelete:Cascade)
+  @@id([userId,departmentId])
+  @@map("user_departments")
+}
+model Project {
+  id String @id @default(cuid())
+  name String
+  clientName String
+  brief String @default("")
+  deadline DateTime
+  status ProjectStatus @default(ACTIVE)
+  createdById String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy User @relation(fields:[createdById], references:[id])
+  tasks Task[]
+  files File[]
+  activities Activity[]
+  @@map("projects")
+}
+model Task {
+  id String @id @default(cuid())
+  projectId String
+  title String
+  description String @default("")
+  departmentId String
+  assigneeId String?
+  priority Priority @default(NORMAL)
+  status TaskStatus @default(TODO)
+  deadline DateTime
+  rejectionReason String?
+  createdById String
+  reminderFor DateTime?
+  overdueFor DateTime?
+  overdue Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project Project @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  department Department @relation(fields:[departmentId],references:[id])
+  assignee User? @relation("TaskAssignee",fields:[assigneeId],references:[id])
+  createdBy User @relation("TaskCreator",fields:[createdById],references:[id])
+  comments Comment[]
+  files File[]
+  activities Activity[]
+  @@index([status])
+  @@index([departmentId])
+  @@index([assigneeId])
+  @@index([deadline])
+  @@index([projectId])
+  @@map("tasks")
+}
+model Comment {
+  id String @id @default(cuid())
+  taskId String
+  userId String
+  body String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task Task @relation(fields:[taskId],references:[id],onDelete:Cascade)
+  user User @relation(fields:[userId],references:[id])
+  files File[]
+  @@index([taskId])
+  @@map("comments")
+}
+model File {
+  id String @id @default(cuid())
+  taskId String?
+  projectId String?
+  commentId String?
+  uploaderId String
+  path String
+  originalName String
+  mimeType String
+  size Int
+  version Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task Task? @relation(fields:[taskId],references:[id],onDelete:Cascade)
+  project Project? @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  comment Comment? @relation(fields:[commentId],references:[id],onDelete:Cascade)
+  uploader User @relation(fields:[uploaderId],references:[id])
+  @@index([taskId])
+  @@map("files")
+}
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  type String
+  payload Json
+  read Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,read])
+  @@map("notifications")
+}
+model Activity {
+  id String @id @default(cuid())
+  projectId String?
+  taskId String?
+  actorId String
+  action String
+  meta Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project Project? @relation(fields:[projectId],references:[id],onDelete:Cascade)
+  task Task? @relation(fields:[taskId],references:[id],onDelete:Cascade)
+  actor User @relation(fields:[actorId],references:[id])
+  @@index([projectId])
+  @@index([taskId])
+  @@map("activity")
+}
+model RefreshSession {
+  id String @id @default(cuid())
+  userId String
+  tokenHash String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@map("refresh_sessions")
+}
+model PushDevice {
+  id String @id @default(cuid())
+  userId String
+  token String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@map("push_devices")
+}

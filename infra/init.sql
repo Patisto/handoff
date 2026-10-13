@@ -1,0 +1,2 @@
+CREATE ROLE handoff_app LOGIN PASSWORD 'handoff_local_app' NOSUPERUSER NOBYPASSRLS;
+GRANT CONNECT ON DATABASE handoff TO handoff_app;
